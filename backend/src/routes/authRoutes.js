@@ -7,6 +7,6 @@ router.post('/login',login);
 router.post('/signup',signup);
 router.post('/logout',logout);
 router.put("/update-profile",protectRoute,updateProfile);
-router.get("/check-auth",protectRoute,checkAuth);   
+router.get("/check",protectRoute,checkAuth);   
 
 module.exports = router;
