@@ -1,31 +1,13 @@
-const {vwidget} = require('cloudinary').v2;
+import { v2 as cloudinary } from "cloudinary";
 
-const uploadImage = async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({
-                success: false,
-                error: "No file uploaded"
-            });
-        }
-        const result = await vwidget.upload(req.file.path, {
-            folder: 'chatSphere',
-            transformation: [   
-                { width: 500, height: 500, crop: 'fill' }
-            ]
-        });
-        res.status(200).json({
-            success: true,
-            imageUrl: result.secure_url
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }   
-};
+import { config } from "dotenv";
 
-module.exports = {
-    uploadImage
-};  
+config();
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+export default cloudinary;

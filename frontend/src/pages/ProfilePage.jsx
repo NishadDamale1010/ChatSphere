@@ -1,98 +1,104 @@
 import { useState } from "react";
-import { useAuthStore } from "../store/UseAuthStore";
-import { Loader } from "lucide-react";
+import { useAuthStore } from "../store/useAuthStore";
+import { Camera, Mail, User } from "lucide-react";
 
-function ProfilePage() {
-  const { authUser, updateProfile, isUpdatingProfile } = useAuthStore();
+const ProfilePage = () => {
+  const { authUser, isUpdatingProfile, updateProfile } = useAuthStore();
+  const [selectedImg, setSelectedImg] = useState(null);
 
-  const [formData, setFormData] = useState({
-    fullName: authUser?.fullName || "",
-    email: authUser?.email || "",
-  });
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+    const reader = new FileReader();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    await updateProfile(formData);
+    reader.readAsDataURL(file);
+
+    reader.onload = async () => {
+      const base64Image = reader.result;
+      setSelectedImg(base64Image);
+      await updateProfile({ profilePic: base64Image });
+    };
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">
-          Profile Settings
-        </h2>
-
-        {/* User Info Display */}
-        <div className="mb-6 text-center">
-          <div className="w-20 h-20 rounded-full bg-blue-500 text-white flex items-center justify-center text-2xl font-bold mx-auto mb-3">
-            {authUser?.fullName?.charAt(0).toUpperCase()}
+    <div className="h-screen pt-20">
+      <div className="max-w-2xl mx-auto p-4 py-8">
+        <div className="bg-base-300 rounded-xl p-6 space-y-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-semibold ">Profile</h1>
+            <p className="mt-2">Your profile information</p>
           </div>
-          <p className="text-gray-700 font-semibold">
-            {authUser?.fullName}
-          </p>
-          <p className="text-gray-500 text-sm">
-            {authUser?.email}
-          </p>
+
+          {/* avatar upload section */}
+
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative">
+              <img
+                src={selectedImg || authUser.profilePic || "/avatar.png"}
+                alt="Profile"
+                className="size-32 rounded-full object-cover border-4 "
+              />
+              <label
+                htmlFor="avatar-upload"
+                className={`
+                  absolute bottom-0 right-0 
+                  bg-base-content hover:scale-105
+                  p-2 rounded-full cursor-pointer 
+                  transition-all duration-200
+                  ${isUpdatingProfile ? "animate-pulse pointer-events-none" : ""}
+                `}
+              >
+                <Camera className="w-5 h-5 text-base-200" />
+                <input
+                  type="file"
+                  id="avatar-upload"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={isUpdatingProfile}
+                />
+              </label>
+            </div>
+            <p className="text-sm text-zinc-400">
+              {isUpdatingProfile ? "Uploading..." : "Click the camera icon to update your photo"}
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            <div className="space-y-1.5">
+              <div className="text-sm text-zinc-400 flex items-center gap-2">
+                <User className="w-4 h-4" />
+                Full Name
+              </div>
+              <p className="px-4 py-2.5 bg-base-200 rounded-lg border">{authUser?.fullName}</p>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="text-sm text-zinc-400 flex items-center gap-2">
+                <Mail className="w-4 h-4" />
+                Email Address
+              </div>
+              <p className="px-4 py-2.5 bg-base-200 rounded-lg border">{authUser?.email}</p>
+            </div>
+          </div>
+
+          <div className="mt-6 bg-base-300 rounded-xl p-6">
+            <h2 className="text-lg font-medium  mb-4">Account Information</h2>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center justify-between py-2 border-b border-zinc-700">
+                <span>Member Since</span>
+                <span>{authUser.createdAt?.split("T")[0]}</span>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span>Account Status</span>
+                <span className="text-green-500">Active</span>
+              </div>
+            </div>
+          </div>
         </div>
-
-        {/* Update Form */}
-        <form onSubmit={handleSubmit}>
-          {/* Full Name */}
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Full Name
-            </label>
-            <input
-              name="fullName"
-              value={formData.fullName}
-              onChange={handleChange}
-              className="shadow border rounded w-full py-2 px-3 text-gray-700 focus:outline-none"
-              type="text"
-              required
-            />
-          </div>
-
-          {/* Email */}
-          <div className="mb-6">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Email
-            </label>
-            <input
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="shadow border rounded w-full py-2 px-3 text-gray-700 focus:outline-none"
-              type="email"
-              required
-            />
-          </div>
-
-          {/* Button */}
-          <button
-            disabled={isUpdatingProfile}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded w-full flex justify-center items-center gap-2 disabled:opacity-70"
-            type="submit"
-          >
-            {isUpdatingProfile ? (
-              <>
-                <Loader className="size-4 animate-spin" />
-                Updating...
-              </>
-            ) : (
-              "Update Profile"
-            )}
-          </button>
-        </form>
       </div>
     </div>
   );
-}
-
+};
 export default ProfilePage;
